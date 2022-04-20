@@ -76,7 +76,7 @@ function link_process()
 {
   path=$1
   
-  source_jar=$2
+  input_jar=$2
 
   echo "---------------------------------------------------------------------------------"
 
@@ -100,23 +100,31 @@ function link_process()
 		 
         source_jar=(`basename $source`)
 	     
-        jar_link=(`ls -l $source_path/$source_jar | awk -F ' ' '{if(NF==11)print $(NF-2) $(NF-1) $NF}'`) 
+        jar_link=(`ls -l $source_path/$source_jar | awk -F ' ' '{if(NF==11)print $(NF-2) $(NF-1) $NF}'`)
 
-        link_process $jar_link $source_jar
+        link_process $jar_link $input_jar
 
      else
 
         echo "start process in Relative Path!!!"
+		
+		input_jar_name=(`echo "$input_jar" | awk -F- '{gsub("-"$NF,"");print}'`)
+		
+		source_jar_name=(`echo "$(basename $source)" | awk -F- '{gsub("-"$NF,"");print}'`)
+		
+		if [ "$input_jar_name" = "$source_jar_name" ];then
 	 
-	    link_jar=(`basename $link`)
+	       link_jar=(`basename $link`)
          
-        source_path=(`dirname $source`)
+           source_path=(`dirname $source`)
 
-        if [ $source_jar != $(basename $source) ];then
+           if [ $input_jar != $(basename $source) ];then
 
-           ln -sf $source_path/$source_jar $link_jar
+              ln -sf $source_path/$input_jar $link_jar
 
-        fi
+           fi
+		   
+		fi
 
       fi
    
@@ -128,19 +136,27 @@ function link_process()
         
 	    jar_link=(`ls -l $source | awk -F ' ' '{if(NF==11)print $(NF-2) $(NF-1) $NF}'`)
 		
-	    link_process $jar_link
+	    link_process $jar_link $input_jar
 		
      else
 	 
 	    echo "start process in Absolute Path !!!"
-	
-	    source_path=(`dirname $source`)
 		
-        if [ $source_jar != $(basename $source) ];then
+		input_jar_name=(`echo "$input_jar" | awk -F- '{gsub("-"$NF,"");print}'`)
+		
+		source_jar_name=(`echo "$(basename $source)" | awk -F- '{gsub("-"$NF,"");print}'`)
+		
+		if [ "$input_jar_name" = "$source_jar_name" ];then
+		
+		   source_path=(`dirname $source`)
+		
+           if [ $input_jar != $(basename $source) ];then
 
-           ln -sf $source_path/$source_jar $link
+              ln -sf $source_path/$input_jar $link
 
-        fi
+           fi
+		
+		fi
 		  		
      fi
 	
@@ -177,7 +193,7 @@ do
 	  
       file_path=(`dirname $item_file`)
 	  
-	  source_jar=$(ls $source_path | grep -E "$item-([0-9]).([0-9])+.([0-9])+.")
+	  source_jar=$(ls $source_path | grep -E "$item-([0-9]).([0-9])*(.)?([0-9])*(.)?")
 
 	  cp $source_path$source_jar $file_path/
 	  
@@ -186,7 +202,7 @@ do
    for item_link in ${jar_link_list[@]}
    do
       
-	  source_jar=$(ls $source_path | grep -E "$item-([0-9]).([0-9])+.([0-9])+.") 
+	  source_jar=$(ls $source_path | grep -E "$item-([0-9]).([0-9])*(.)?([0-9])*(.)?") 
 	  
 	  link_process $item_link $source_jar
 	  
